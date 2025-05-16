@@ -1,14 +1,97 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="6a8eff9b-ada8-4478-949b-5cfcf8ee5fa7" name="Changes" comment="" />
+    <list default="true" id="6a8eff9b-ada8-4478-949b-5cfcf8ee5fa7" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/1247" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/1247" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/1249" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/1249" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/1249_fsm" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/1249_fsm" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/1255" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/1255" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/1255_vm" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/1255_vm" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/1259" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/1259" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/1259_fsm" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/1259_fsm" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/1259_vm" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/1259_vm" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2224" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2224" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/24696" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/24697" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/24697_fsm" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/24697_vm" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/24702" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/24703" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/24704" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/24711" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/24712" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/24713" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/24714" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/24719" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/24720" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/24721" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/24728" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/24729" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/24730" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/24731" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/24731_fsm" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/24731_vm" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/24735" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/24736" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/24737" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/24749" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2579" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2579" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2604" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2604" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2606" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2606" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2608" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2608" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2610" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2610" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2619" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2619" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2619_fsm" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2619_fsm" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2619_vm" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2619_vm" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2620" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2620" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2656" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2656" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2657" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2657" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2658" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2658" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2659" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2659" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2662" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2662" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2663" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2663" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2664" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2664" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2665" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2665" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2666" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2666" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2667" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2667" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2673" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2673" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2673_fsm" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2673_fsm" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2674" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2674" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2678" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2678" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2679" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2679" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2690" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2690" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2691" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2691" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2696" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2696" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2699" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2699" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2701" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2701" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2702" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2702" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2703" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2703" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2704" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2704" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2840" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2840" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2840_vm" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2840_vm" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/2841" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/2841" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/3455" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/3455" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/5002" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/base/13769/5002" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/base/13769/pg_internal.init" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/global/1260" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/global/1260" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/global/pg_control" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/global/pg_control" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/global/pg_internal.init" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/pg_stat_tmp/db_0.stat" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/pg_stat_tmp/db_13769.stat" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/pg_stat_tmp/global.stat" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/pg_stat_tmp/global.stat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/pg_wal/000000010000000000000001" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/pg_wal/000000010000000000000001" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/pg_xact/0000" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/pg_xact/0000" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my-project/data/postmaster.pid" beforeDir="false" afterPath="$PROJECT_DIR$/my-project/data/postmaster.pid" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/ORM" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
@@ -19,14 +102,14 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "last_opened_file_path": "D:/vue_postgre",
-    "settings.editor.selected.configurable": "project.propVCSSupport.DirectoryMappings"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/vue_postgre&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.DirectoryMappings&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected="Python.crud">
     <configuration name="crud" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="vue_postgre" />
