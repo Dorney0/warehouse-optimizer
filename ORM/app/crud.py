@@ -114,100 +114,76 @@ def update_entity(db: Session, entity_update: schemas.EntityUpdate):
     if not db_entity:
         return None
 
-    # Старое количество
     old_quantity = db_entity.quantity
 
-    # Обновляем остальные поля (кроме id и quantity)
+    # Обновляем остальные поля, кроме id и quantity
     for key, value in entity_update.dict(exclude_unset=True).items():
         if key not in ("id", "quantity"):
             setattr(db_entity, key, value)
 
-    new_quantity = entity_update.quantity
-    quantity_difference = new_quantity - old_quantity
-
-    db.add(models.StockMovement(
-        entity_id=db_entity.id,
-        quantity=quantity_difference,
-        movement_type='incoming',
-        related_order_id=None
-    ))
-    db.commit()
-
-    db_entity.quantity += new_quantity
-    db.commit()
-    # Если quantity указан
     if 'quantity' in entity_update.dict(exclude_unset=True):
-        if new_quantity < 0:
+        incoming_quantity = entity_update.quantity
+
+        if incoming_quantity < 0:
             raise ValueError("Quantity cannot be negative")
-        if quantity_difference > 0:
-            # Приход: сначала покрываем дефицит
-            deficiency_records = db.query(models.StockMovement).filter(
-                models.StockMovement.entity_id == db_entity.id,
+
+        remaining_difference = incoming_quantity
+
+        # Сначала покрываем дефициты
+        deficiency_records = db.query(models.StockMovement).filter(
+            models.StockMovement.entity_id == db_entity.id,
+            models.StockMovement.movement_type == 'deficiency'
+        ).order_by(models.StockMovement.id.asc()).all()
+
+        for deficiency in deficiency_records:
+            if remaining_difference <= 0:
+                break
+
+            cover_qty = min(deficiency.quantity, remaining_difference)
+            related_order_id = deficiency.related_order_id
+
+            # Добавляем запись, что покрыли дефицит
+            db.add(models.StockMovement(
+                entity_id=db_entity.id,
+                quantity=cover_qty,
+                movement_type='outgoing',
+                related_order_id=related_order_id
+            ))
+
+            remaining_difference -= cover_qty
+
+            if cover_qty == deficiency.quantity:
+                db.delete(deficiency)
+            else:
+                deficiency.quantity -= cover_qty
+
+            db.commit()
+
+            # Проверка, остались ли дефициты по заказу
+            remaining = db.query(models.StockMovement).filter(
+                models.StockMovement.related_order_id == related_order_id,
                 models.StockMovement.movement_type == 'deficiency'
-            ).order_by(models.StockMovement.id.asc()).all()
+            ).first()
 
-            for deficiency_record in deficiency_records:
-                if quantity_difference <= 0:
-                    break
-
-                if deficiency_record.quantity <= quantity_difference:
-                    # Покрываем полностью
-                    db.add(models.StockMovement(
-                        entity_id=db_entity.id,
-                        quantity=deficiency_record.quantity,
-                        movement_type='outgoing',
-                        related_order_id=deficiency_record.related_order_id
-                    ))
+            if not remaining:
+                order = db.query(models.Order).filter(
+                    models.Order.id == related_order_id
+                ).first()
+                if order:
+                    order.status = "fulfilled"
                     db.commit()
 
-                    db_entity.quantity -= deficiency_record.quantity
-                    db.commit()
+        # Если остался излишек — это обычный приход
+        if remaining_difference > 0:
+            db.add(models.StockMovement(
+                entity_id=db_entity.id,
+                quantity=remaining_difference,
+                movement_type='incoming',
+                related_order_id=None
+            ))
+            db_entity.quantity += remaining_difference
+            db.commit()
 
-                    db.delete(deficiency_record)
-                    db.commit()
-
-                    quantity_difference -= deficiency_record.quantity
-
-                    remaining_deficiency = db.query(models.StockMovement).filter(
-                        models.StockMovement.related_order_id == deficiency_record.related_order_id,
-                        models.StockMovement.movement_type == 'deficiency'
-                    ).first()
-
-                    if not remaining_deficiency:
-                        order = db.query(models.Order).filter(
-                            models.Order.id == deficiency_record.related_order_id).first()
-                        if order:
-                            order.status = "fulfilled"
-                            db.commit()
-                else:
-                    # Покрываем частично
-                    db.add(models.StockMovement(
-                        entity_id=db_entity.id,
-                        quantity=quantity_difference,
-                        movement_type='outgoing',
-                        related_order_id=deficiency_record.related_order_id
-                    ))
-                    db.commit()
-
-                    db_entity.quantity -= quantity_difference
-                    deficiency_record.quantity -= quantity_difference
-                    db.commit()
-
-                    quantity_difference = 0
-                    break
-
-            # Если остался приход после покрытия дефицита
-            if quantity_difference > 0:
-                db.add(models.StockMovement(
-                    entity_id=db_entity.id,
-                    quantity=quantity_difference,
-                    movement_type='incoming',
-                    related_order_id=None
-                ))
-                db.commit()
-
-                db_entity.quantity += quantity_difference
-                db.commit()
 
         elif quantity_difference < 0:
             # Расход
@@ -220,20 +196,14 @@ def update_entity(db: Session, entity_update: schemas.EntityUpdate):
             ))
             db.commit()
 
-            db_entity.quantity -= quantity_out
-            db.commit()
+        # Устанавливаем итоговое количество
+        db_entity.quantity = new_quantity
 
-    # Обновляем, если были другие поля
+    # Финальный коммит и возврат
     db.commit()
     db.refresh(db_entity)
 
     return schemas.Entity.from_orm(db_entity)
-
-
-
-
-
-
 
 def delete_entity(db: Session, entity_id: int):
     # Находим сущность
@@ -276,53 +246,14 @@ def create_order(db: Session, order: schemas.OrderCreate):
     db.add(db_order)
     db.commit()
     db.refresh(db_order)
-
     # Получаем информацию о сущности (entity) для этого заказа
     entity = db.query(models.Entity).filter(models.Entity.id == db_order.entity_id).first()
-
     # Обработка случая, когда entity не найден
     if not entity:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Товар с ID {db_order.entity_id} не найден"
         )
-
-    # Проверка наличия достаточного количества товара
-    if entity.quantity < db_order.total_amount:
-        # Если товара не хватает, создаем запись о дефиците в stock_movements
-        stock_movement = models.StockMovement(
-            entity_id=db_order.entity_id,
-            quantity=db_order.total_amount - entity.quantity,  # Количество дефицита
-            movement_type="deficiency",  # Тип движения: дефицит
-            related_order_id=db_order.id,
-            movement_time=func.now(),  # Время создания записи
-        )
-        db.add(stock_movement)
-        db.commit()  # Сохраняем запись о дефиците
-        db_order.status = "deficiency"
-        db.commit()
-        db.refresh(db_order)
-        # Выбрасываем ошибку, чтобы уведомить о дефиците товара
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Недостаточно товара на складе: требуется {db_order.total_amount}, доступно {entity.quantity}"
-        )
-
-    # Обновляем количество товара в таблице entities
-    new_quantity = entity.quantity - db_order.total_amount
-    entity.quantity = new_quantity
-    db.commit()  # Сохраняем изменения в количестве
-
-    # Создаем запись о движении товара в таблице stock_movements
-    stock_movement = models.StockMovement(
-        entity_id=db_order.entity_id,
-        quantity=db_order.total_amount,
-        movement_type="outgoing",  # Тип движения: исходящий
-        related_order_id=db_order.id,
-        movement_time=func.now(),  # Используем func.now() для текущего времени
-    )
-    db.add(stock_movement)
-    db.commit()  # Сохраняем движение товара
 
     # Если все прошло без ошибок, возвращаем созданный заказ
     return db_order
@@ -401,15 +332,7 @@ def create_stock_movement(db: Session, entity_id: int, quantity: int, movement_t
     if not entity:
         raise ValueError("Entity not found")
 
-    if movement_type == 'incoming':
-        # При входящем движении увеличиваем количество товара
-        new_quantity = entity.quantity + quantity
-    elif movement_type == 'outgoing':
-        # При исходящем движении проверяем, достаточно ли товара на складе
-        if entity.quantity < quantity:
-            raise ValueError("Not enough stock")
-        new_quantity = entity.quantity - quantity
-    else:
+    if movement_type != 'incoming' or 'outgoing':
         raise ValueError("Invalid movement type. Allowed values are 'incoming' or 'outgoing'.")
 
     # Создаем запись в таблице stock_movements
@@ -420,16 +343,8 @@ def create_stock_movement(db: Session, entity_id: int, quantity: int, movement_t
         related_order_id=related_order_id,
     )
 
-    try:
-        db.add(stock_movement)
-        db.commit()  # Сохраняем движение товара
-
-        # Обновляем количество товара в таблице entities
-        entity.quantity = new_quantity
-        db.commit()  # Сохраняем изменения в количестве товара
-    except SQLAlchemyError as e:
-        db.rollback()  # Откатываем транзакцию в случае ошибки
-        raise ValueError(f"Database error: {str(e)}")
+    db.add(stock_movement)
+    db.commit()  # Сохраняем движение товара
 
     return stock_movement
 
@@ -444,9 +359,15 @@ def get_stock_at_time(db: Session, entity_id: int, timestamp: datetime):
         models.StockMovement.movement_time <= timestamp
     ).all()
 
-    # Суммируем все изменения количества
-    total_quantity = sum(movement.quantity for movement in movements)
+    total_quantity = 0
+    for movement in movements:
+        if movement.movement_type == 'incoming':
+            total_quantity += movement.quantity
+        elif movement.movement_type == 'outgoing':
+            total_quantity -= movement.quantity
+
     return total_quantity
+
 
 def get_quantity_by_date(db: Session, entity_id: int, target_date: date):
     start_time = datetime.combine(target_date, time.min)

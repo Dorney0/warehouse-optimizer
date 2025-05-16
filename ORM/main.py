@@ -10,6 +10,7 @@ from app.crud import delete_stock_movements_by_entity_id
 from fastapi import FastAPI, Depends, HTTPException, Query
 from datetime import datetime, time
 from app import models
+from datetime import date
 
 app = FastAPI()
 
@@ -115,10 +116,21 @@ def create_stock_movement(stock_movement: schemas.StockMovementCreate, db: Sessi
 def read_stock_movements(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_stock_movements(db, skip=skip, limit=limit)
 
-@app.get("/stock_movements/{entity_id}/quantity_at_time", response_model=float)
-def get_stock_at_time(entity_id: int, timestamp: datetime, db: Session = Depends(get_db)):
+@app.get("/stock_movements/{entity_id}/quantity_at_time")
+def get_stock_at_time(entity_id: int, timestamp: date, db: Session = Depends(get_db)):
+    entity = db.query(models.Entity).filter(models.Entity.id == entity_id).first()
+    if not entity:
+        raise HTTPException(status_code=404, detail="Entity not found")
+
     total_quantity = crud.get_stock_at_time(db, entity_id=entity_id, timestamp=timestamp)
-    return total_quantity
+
+    return {
+        "message": f"Сущность '{entity.name}' (ID {entity.id}) имеет количество {total_quantity} на складе на момент {timestamp.strftime('%Y-%m-%d %H:%M:%S')}",
+        "entity_id": entity.id,
+        "entity_name": entity.name,
+        "quantity": total_quantity,
+        "as_of": timestamp
+    }
 
 @app.delete("/stock-movements/{entity_id}")
 def delete_stock_movements(entity_id: int, db: Session = Depends(get_db)):
