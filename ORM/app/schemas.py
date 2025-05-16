@@ -71,3 +71,12 @@ class StockMovement(StockMovementBase):
 
     class Config:
         orm_mode = True
+
+class EntityStockSchema(BaseModel):
+    id: int
+    entity_id: int
+    quantity: int
+    date: datetime
+
+    class Config:
+        orm_mode = True

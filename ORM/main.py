@@ -1,9 +1,10 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, APIRouter
 from typing import List
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app import crud, schemas
 from datetime import datetime
+from app.crud import get_last_snapshot_date
 from app.crud import get_quantity_by_date
 from app.crud import get_entity_with_children
 from app.crud import delete_stock_movements_by_entity_id
@@ -11,8 +12,12 @@ from fastapi import FastAPI, Depends, HTTPException, Query
 from datetime import datetime, time
 from app import models
 from datetime import date
+from app.Services.stock_snapshot import save_today_stock_snapshot
+from apscheduler.schedulers.background import BackgroundScheduler
 
 app = FastAPI()
+router = APIRouter()
+scheduler = BackgroundScheduler()
 
 def get_db():
     db = SessionLocal()
@@ -20,6 +25,28 @@ def get_db():
         yield db
     finally:
         db.close()
+
+def get_db_session():
+    db = SessionLocal()
+    return db
+
+def scheduled_snapshot():
+    db = get_db_session()
+    save_today_stock_snapshot(db)
+    db.close()
+    print(f"Snapshot saved at {datetime.now()}")
+
+@app.on_event("startup")
+def startup_event():
+    scheduler.add_job(scheduled_snapshot, 'cron', hour=0, minute=0, timezone='Europe/Moscow')
+    scheduler.start()
+
+@app.get("/snapshot/last")
+def check_last_snapshot():
+    db = SessionLocal()
+    last = get_last_snapshot_date(db)
+    db.close()
+    return {"last_snapshot": last.isoformat() if last else "No snapshots yet"}
 
 @app.post("/entities/", response_model=schemas.Entity)
 def create_entity(entity: schemas.EntityCreate, db: Session = Depends(get_db)):

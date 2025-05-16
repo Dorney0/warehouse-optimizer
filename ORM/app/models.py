@@ -57,3 +57,11 @@ class StockMovement(BaseModel):
     order = relationship("Order", backref="stock_movements")
     created_at = None
     updated_at = None
+
+class EntityStock(Base):
+    __tablename__ = "entity_stock"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    entity_id = Column(Integer, ForeignKey("entities.id"), nullable=False)
+    quantity = Column(Integer, nullable=False)
+    date = Column(DateTime, default=datetime.utcnow, nullable=False)

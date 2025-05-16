@@ -9,6 +9,7 @@ from datetime import datetime, date, time
 from fastapi import HTTPException, status
 from typing import Dict
 from .models import Order
+from .models import EntityStock
 from collections import defaultdict
 
 logger = logging.getLogger(__name__)
@@ -241,21 +242,27 @@ def delete_stock_movements_by_entity_id(db: Session, entity_id: int):
 def create_order(db: Session, order: schemas.OrderCreate):
     # Создаем новый заказ
     db_order = models.Order(**order.dict())
-
-    # Добавляем заказ в базу данных
-    db.add(db_order)
-    db.commit()
-    db.refresh(db_order)
-    # Получаем информацию о сущности (entity) для этого заказа
-    entity = db.query(models.Entity).filter(models.Entity.id == db_order.entity_id).first()
     # Обработка случая, когда entity не найден
-    if not entity:
+    if not db_order.entity_id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Товар с ID {db_order.entity_id} не найден"
         )
+    # Добавляем заказ в базу данных
+    db.add(db_order)
+    db.commit()
 
-    # Если все прошло без ошибок, возвращаем созданный заказ
+    # Создаем запись в таблице stock_movements
+    stock_movement = StockMovement(
+        entity_id=db_order.entity_id,
+        quantity=db_order.total_amount,
+        movement_type="outgoing",
+        related_order_id=db_order.id,
+    )
+
+    db.add(stock_movement)
+    db.commit()
+
     return db_order
 
 def get_order(db: Session, order_id: int):
@@ -344,7 +351,7 @@ def create_stock_movement(db: Session, entity_id: int, quantity: int, movement_t
     )
 
     db.add(stock_movement)
-    db.commit()  # Сохраняем движение товара
+    db.commit()
 
     return stock_movement
 
@@ -368,6 +375,17 @@ def get_stock_at_time(db: Session, entity_id: int, timestamp: datetime):
 
     return total_quantity
 
+def get_quantity_entity(db: Session, entity_id: int):
+    movements = db.query(models.StockMovement).filter(
+        models.StockMovement.entity_id == entity_id,
+    ).all()
+    total_quantity = 0
+    for movement in movements:
+        if movement.movement_type == 'incoming':
+            total_quantity += movement.quantity
+        elif movement.movement_type == 'outgoing':
+            total_quantity -= movement.quantity
+    return total_quantity
 
 def get_quantity_by_date(db: Session, entity_id: int, target_date: date):
     start_time = datetime.combine(target_date, time.min)
@@ -449,7 +467,8 @@ def analyze_deficit_for_orders(db: Session) -> dict:
 
     return result
 
-
+def get_last_snapshot_date(db: Session):
+    return db.query(func.max(EntityStock.date)).scalar()
 
 
 
