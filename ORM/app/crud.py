@@ -44,13 +44,13 @@ def create_entity(db: Session, entity: schemas.EntityCreate):
     db.add(db_stock_movement)
     db.commit()
 
-    return schemas.Entity.from_orm(db_entity)
+    return db_entity
 
 def get_entity(db: Session, entity_id: int):
     db_entity = db.query(models.Entity).filter(models.Entity.id == entity_id).first()
     if db_entity is None:
         return None
-    return schemas.Entity.from_orm(db_entity)
+    return db_entity
 
 def get_entity_with_children(db: Session, entity_id: int):
     # Получаем основную сущность
@@ -330,8 +330,6 @@ def delete_order(db: Session, order_id: int):
     # Возвращаем удаленный заказ в формате схемы Order
     return schemas.Order.from_orm(db_order)
 
-
-
 def create_stock_movement(db: Session, entity_id: int, quantity: int, movement_type: str, related_order_id: int = None):
     # Получаем текущее количество товара из таблицы entities
     entity = db.query(Entity).filter(Entity.id == entity_id).first()
@@ -355,10 +353,8 @@ def create_stock_movement(db: Session, entity_id: int, quantity: int, movement_t
 
     return stock_movement
 
-
 def get_stock_movements(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.StockMovement).offset(skip).limit(limit).all()
-
 
 def get_stock_at_time(db: Session, entity_id: int, timestamp: datetime):
     movements = db.query(models.StockMovement).filter(
