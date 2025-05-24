@@ -5,7 +5,7 @@ from datetime import datetime
 from .models import Entity
 from .models import StockMovement
 from sqlalchemy import func
-from datetime import datetime, date, time
+from datetime import datetime, date, time, timedelta
 from fastapi import HTTPException, status
 from typing import Dict
 from .models import Order
@@ -31,18 +31,6 @@ def create_entity(db: Session, entity: schemas.EntityCreate):
     db.add(db_entity)
     db.commit()
     db.refresh(db_entity)
-
-    # Добавление записи в таблицу stock_movements
-    db_stock_movement = models.StockMovement(
-        entity_id=db_entity.id,
-        quantity=entity.quantity,
-        movement_type="incoming",  # Указываем, что это входящее движение
-        movement_time=datetime.now()  # Время движения
-    )
-
-    # Добавляем движение в таблицу
-    db.add(db_stock_movement)
-    db.commit()
 
     return db_entity
 
@@ -405,63 +393,101 @@ def get_quantity_by_date(db: Session, entity_id: int, target_date: date):
     return {"entity_id": entity_id, "quantity_on_date": quantity, "as_of": end_time}
 
 
-def get_leaf_breakdown(db: Session, entity_id: int, multiplier: float = 1.0) -> Dict[int, float]:
+def get_leaf_breakdown(db_session, entity_id: int, quantity: int | str):
     """
-    Рекурсивная развертка на leaf-узлы.
-    Возвращает словарь: {entity_id: quantity_needed}
+    Возвращает словарь {entity_id: total_quantity} для всех листовых деталей,
+    необходимых для сборки entity_id в количестве quantity.
     """
-    result = defaultdict(float)
+    result = defaultdict(int)
 
-    def recurse(e_id, mult):
-        entity = db.query(Entity).filter(Entity.id == e_id).first()
+    def dfs(current_id, current_qty):
+        try:
+            current_qty = int(current_qty)
+        except (ValueError, TypeError):
+            current_qty = 1  # значение по умолчанию
+
+        entity = db_session.query(Entity).filter(Entity.id == current_id).first()
         if not entity:
             return
-        children = db.query(Entity).filter(Entity.parent_id == e_id).all()
-        if not children:
-            result[e_id] += mult
-        else:
-            for child in children:
-                recurse(child.id, mult)
 
-    recurse(entity_id, multiplier)
+        # Если нет дочерних элементов — листовая деталь
+        if not entity.children:
+            result[entity.id] += current_qty
+            return
+
+        # Рекурсивно обходим детей
+        for child in entity.children:
+            try:
+                child_qty = int(child.quantity)
+            except (ValueError, TypeError):
+                child_qty = 1
+            dfs(child.id, current_qty * child_qty)
+
+    dfs(entity_id, quantity)
     return dict(result)
 
 
-def analyze_deficit_for_orders(db: Session) -> dict:
+def analyze_deficit_for_orders(db: Session) -> list[Dict]:
     """
-    Разобрать все заказы со статусом deficiency, а затем сравнить наличие товара на складе.
-    Сравнивает количество товаров на складе с тем, что нужно по заказам.
+    Анализ дефицита: разбивает заказы в статусе 'Pending' за последний месяц до листьев,
+    суммирует потребности и сравнивает с остатками на складе (включая разборку узлов).
     """
-    # 1. Собираем все orders со статусом deficiency
-    deficiency_orders = db.query(Order).filter(Order.status == 'deficiency').all()
 
-    total_needed = defaultdict(float)
+    # 1. Получаем все заказы в статусе 'Pending'
+    orders = db.query(Order).filter(
+        Order.status == 'Pending'
+    ).all()
 
-    # Для каждого заказа разбиваем его на детали и суммируем
-    for order in deficiency_orders:
-        breakdown = get_leaf_breakdown(db, order.entity_id, order.total_amount)
-        for entity_id, quantity in breakdown.items():
-            total_needed[entity_id] += quantity
+    # 2. Суммарные потребности в листовых деталях
+    required = defaultdict(int)
+    for order in orders:
+        if not order.entity_id:
+            continue
 
-    # 2. Получаем фактическое наличие на складе этих товаров
-    entities_in_stock = db.query(Entity).filter(Entity.id.in_(total_needed.keys())).all()
-    available_in_stock = {entity.id: entity.quantity for entity in entities_in_stock}
+        quantity = int(order.total_amount) if hasattr(order, 'total_amount') else "error"
+        breakdown = get_leaf_breakdown(db, order.entity_id, quantity)
 
-    # 3. Считаем дефицит по каждой детали
-    result = {}
-    for entity_id, needed_quantity in total_needed.items():
-        available_quantity = available_in_stock.get(entity_id, 0.0)
-        deficit = max(needed_quantity - available_quantity, 0.0)
-        surplus = max(available_quantity - needed_quantity, 0.0)
+        for leaf_id, leaf_qty in breakdown.items():
+            required[leaf_id] += leaf_qty
 
-        result[entity_id] = {
-            'required_from_orders': needed_quantity,
-            'available_in_stock': available_quantity,
-            'deficit': deficit,
-            'surplus': surplus
-        }
+    # 3. Получаем остатки по всем entity
+    stock_by_entity = {}
+    for entity in db.query(Entity).all():
+        qty = get_quantity_entity(db, entity.id)
+        if qty > 0:
+            stock_by_entity[entity.id] = qty
+
+    # 4. Разбираем узлы на листовые компоненты
+    decomposed_leaf_stock = defaultdict(int)
+    for entity_id, qty in stock_by_entity.items():
+        entity = db.query(Entity).filter(Entity.id == entity_id).first()
+        if entity and entity.children:
+            breakdown = get_leaf_breakdown(db, entity_id, qty)
+            for leaf_id, leaf_qty in breakdown.items():
+                decomposed_leaf_stock[leaf_id] += leaf_qty
+
+    # 5. Собираем финальный отчёт: прямой stock + разобранный
+    result = []
+    for entity_id, req_qty in required.items():
+        stock_direct = stock_by_entity.get(entity_id, 0)
+        stock_from_decomposition = decomposed_leaf_stock.get(entity_id, 0)
+        total_stock = stock_direct + stock_from_decomposition
+
+        entity = db.query(Entity).filter(Entity.id == entity_id).first()
+        if entity:
+            deficit = req_qty - total_stock
+            result.append({
+                "id": entity.id,
+                "name": entity.name,
+                "required_quantity": req_qty,
+                "stock_quantity": total_stock,
+                "deficit": deficit if deficit > 0 else None,
+            })
 
     return result
+
+
+
 
 def get_last_snapshot_date(db: Session):
     return db.query(func.max(EntityStock.date)).scalar()

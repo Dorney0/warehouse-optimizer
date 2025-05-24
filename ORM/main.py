@@ -8,6 +8,7 @@ from app.crud import get_last_snapshot_date
 from app.crud import get_quantity_by_date
 from app.crud import get_entity_with_children
 from app.crud import delete_stock_movements_by_entity_id
+from app.crud import get_leaf_breakdown
 from fastapi import FastAPI, Depends, HTTPException, Query
 from datetime import datetime, time
 from app import models
@@ -38,7 +39,7 @@ def scheduled_snapshot():
 
 @app.on_event("startup")
 def startup_event():
-    scheduler.add_job(scheduled_snapshot, 'cron', hour=0, minute=0, timezone='Europe/Moscow')
+    scheduler.add_job(scheduled_snapshot, 'cron', hour=4, minute=23, timezone='Europe/Moscow')
     scheduler.start()
 
 @app.get("/snapshot/last")
@@ -125,8 +126,6 @@ def delete_order(order_id: int, db: Session = Depends(get_db)):
     # Преобразуем удаленный заказ в схему Order для возвращаемого ответа
     return schemas.Order.from_orm(deleted_order)
 
-
-
 @app.post("/stock_movements/", response_model=schemas.StockMovement)
 def create_stock_movement(stock_movement: schemas.StockMovementCreate, db: Session = Depends(get_db)):
     db_stock_movement = crud.create_stock_movement(
@@ -137,7 +136,6 @@ def create_stock_movement(stock_movement: schemas.StockMovementCreate, db: Sessi
         related_order_id=stock_movement.related_order_id  # Это поле может быть None
     )
     return db_stock_movement
-
 
 @app.get("/stock_movements/", response_model=List[schemas.StockMovement])
 def read_stock_movements(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
@@ -191,6 +189,13 @@ def get_quantity(
         "current_quantity": result["quantity_on_date"],
         "movement_time": result["as_of"]
     }
+
+@app.get("/entity/{entity_id}/breakdown", response_model=dict[int, int])
+def read_entity_breakdown(entity_id: int, quantity: int, db: Session = Depends(get_db)):
+    breakdown = get_leaf_breakdown(db, entity_id, quantity)
+    if not breakdown:
+        raise HTTPException(status_code=404, detail="Entity not found or has no children")
+    return breakdown
 
 @app.get("/analyze_deficit")
 def get_deficit_analysis(db: Session = Depends(get_db)):
