@@ -241,15 +241,15 @@ def create_order(db: Session, order: schemas.OrderCreate):
     db.commit()
 
     # Создаем запись в таблице stock_movements
-    stock_movement = StockMovement(
-        entity_id=db_order.entity_id,
-        quantity=db_order.total_amount,
-        movement_type="outgoing",
-        related_order_id=db_order.id,
-    )
+    #stock_movement = StockMovement(
+    #    entity_id=db_order.entity_id,
+    #    quantity=db_order.total_amount,
+    #    movement_type="outgoing",
+    #    related_order_id=db_order.id,
+    #)
 
-    db.add(stock_movement)
-    db.commit()
+    #db.add(stock_movement)
+    #db.commit()
 
     return db_order
 

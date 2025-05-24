@@ -157,6 +157,27 @@ def get_stock_at_time(entity_id: int, timestamp: date, db: Session = Depends(get
         "as_of": timestamp
     }
 
+@app.get("/stock_movements/quantity_at_time")
+def get_stock_at_time(timestamp: date, db: Session = Depends(get_db)):
+    entities = db.query(models.Entity).all()
+    if not entities:
+        raise HTTPException(status_code=404, detail="No entities found")
+
+    stock_movements = []
+    for entity in entities:
+        total_quantity = crud.get_stock_at_time(db, entity_id=entity.id, timestamp=timestamp)
+        stock_movements.append({
+            "entity_id": entity.id,
+            "entity_name": entity.name,
+            "quantity": total_quantity,
+            "as_of": timestamp.strftime('%Y-%m-%d %H:%M:%S')
+        })
+
+    return {
+        "message": f"Stock quantities for all entities as of {timestamp.strftime('%Y-%m-%d %H:%M:%S')}",
+        "stock_movements": stock_movements
+    }
+
 @app.delete("/stock-movements/{entity_id}")
 def delete_stock_movements(entity_id: int, db: Session = Depends(get_db)):
     # Вызываем метод для удаления всех записей с данным entity_id
