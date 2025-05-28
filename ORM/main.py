@@ -15,10 +15,20 @@ from app import models
 from datetime import date
 from app.Services.stock_snapshot import save_today_stock_snapshot
 from apscheduler.schedulers.background import BackgroundScheduler
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.routing import APIRoute
 
 app = FastAPI()
 router = APIRouter()
 scheduler = BackgroundScheduler()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:8080"],  # значение порта Vue
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["*"],
+)
 
 def get_db():
     db = SessionLocal()
@@ -227,3 +237,9 @@ def get_deficit_analysis(db: Session = Depends(get_db)):
     result = crud.analyze_deficit_for_orders(db)
     return result
 
+@app.get("/api/endpoints")
+def get_endpoints():
+    return [{
+        "path": route.path,
+        "methods": list(route.methods)
+    } for route in app.routes if isinstance(route, APIRoute)]
