@@ -48,7 +48,7 @@ import homeIcon from '@/assets/sidebar/homeIcon.svg'
 .close-btn {
   position: absolute;
   top: 25px;
-  right: 1rem;
+  left: 0.25rem;
   background: transparent;
   border: none;
   font-size: 1.5rem;
