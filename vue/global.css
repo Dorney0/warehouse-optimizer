@@ -1,0 +1,10 @@
+@font-face {
+    font-family: 'Calmius';
+    src: url('@/assets/fonts/Calmius/Calmius-Regular.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+}
+
+body {
+    font-family: 'Calmius', sans-serif;
+}
