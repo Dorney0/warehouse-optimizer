@@ -67,36 +67,13 @@ def get_entity_with_children(db: Session, entity_id: int):
 
     return entity_data
 
-def get_entity_with_children(db: Session, entity_id: int):
-    # Получаем основную сущность
-    entity = db.query(models.Entity).filter(models.Entity.id == entity_id).first()
-
-    if not entity:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Entity with ID {entity_id} not found"
-        )
-
-    # Рекурсивная функция для получения всех дочерних элементов
-    def get_children(entity_id: int):
-        children = db.query(models.Entity).filter(models.Entity.parent_id == entity_id).all()
-        result = []
-        for child in children:
-            result.append({
-                **schemas.Entity.from_orm(child).dict(),  # Делаем схему Entity из модели
-                "children": get_children(child.id)  # Рекурсивно находим детей
-            })
-        return result
-
-    # Строим результат с детьми
-    entity_data = schemas.Entity.from_orm(entity).dict()
-    entity_data["children"] = get_children(entity.id)
-
-    return entity_data
-
 def get_entities(db: Session, skip: int = 0, limit: int = 100):
     db_entities = db.query(models.Entity).offset(skip).limit(limit).all()
     return [schemas.Entity.from_orm(entity) for entity in db_entities]
+
+def get_entities_with_children(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.Entity).offset(skip).limit(limit).all()
+
 
 def update_entity(db: Session, entity_update: schemas.EntityUpdate):
     db_entity = db.query(models.Entity).filter(models.Entity.id == entity_update.id).first()
@@ -294,7 +271,6 @@ def update_order(db: Session, order_update: schemas.OrderUpdate):
     db.commit()
     db.refresh(db_order)
     return db_order
-
 
 def delete_order(db: Session, order_id: int):
     # Находим заказ по ID

@@ -23,6 +23,13 @@ class EntityUpdate(BaseModel):
     level: Optional[int] = None
     parent_id: Optional[int] = None
 
+class EntitySimple(EntityBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+        from_attributes = True
+
 class Entity(EntityBase):
     id: int
     children: List["Entity"] = []
