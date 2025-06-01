@@ -78,7 +78,7 @@ def get_entity_with_children_route(entity_id: int, db: Session = Depends(get_db)
 def read_entities(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_entities_with_children(db, skip=skip, limit=limit)
 
-@app.get("/entities", response_model=List[schemas.EntitySimple])
+@app.get("/entities", response_model=List[schemas.EntityBase])
 def read_entities(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_entities(db, skip=skip, limit=limit)
 

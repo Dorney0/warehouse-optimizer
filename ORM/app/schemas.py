@@ -4,6 +4,7 @@ from datetime import datetime
 from sqlalchemy.orm import relationship
 
 class EntityBase(BaseModel):
+    id: int
     name: str
     quantity: int
     level: int
@@ -17,21 +18,12 @@ class EntityCreate(EntityBase):
     pass
 
 class EntityUpdate(BaseModel):
-    id: int
     quantity: Optional[int] = None
     name: Optional[str] = None
     level: Optional[int] = None
     parent_id: Optional[int] = None
 
-class EntitySimple(EntityBase):
-    id: int
-
-    class Config:
-        orm_mode = True
-        from_attributes = True
-
 class Entity(EntityBase):
-    id: int
     children: List["Entity"] = []
 
     class Config:
