@@ -24,7 +24,10 @@ scheduler = BackgroundScheduler()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8080"],  # значение порта Vue
+    allow_origins=[
+        "http://localhost:8080",
+        "http://192.168.1.105:8000"
+    ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
