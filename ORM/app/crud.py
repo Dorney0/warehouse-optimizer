@@ -301,7 +301,7 @@ def create_stock_movement(db: Session, entity_id: int, quantity: int, movement_t
     if not entity:
         raise ValueError("Entity not found")
 
-    if movement_type != 'incoming' or 'outgoing':
+    if movement_type not in ("incoming", "outgoing"):
         raise ValueError("Invalid movement type. Allowed values are 'incoming' or 'outgoing'.")
 
     # Создаем запись в таблице stock_movements
