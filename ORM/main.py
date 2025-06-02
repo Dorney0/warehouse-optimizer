@@ -26,7 +26,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:8080",
-        "http://192.168.1.105:8000"
+        "http://192.168.1.105:8000",
+        "http://192.168.0.104:8000"
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
@@ -81,7 +82,7 @@ def get_entity_with_children_route(entity_id: int, db: Session = Depends(get_db)
 def read_entities(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_entities_with_children(db, skip=skip, limit=limit)
 
-@app.get("/entities", response_model=List[schemas.EntityBase])
+@app.get("/entities/", response_model=List[schemas.EntityBase])
 def read_entities(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_entities(db, skip=skip, limit=limit)
 
