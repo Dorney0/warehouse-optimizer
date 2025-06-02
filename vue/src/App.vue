@@ -54,7 +54,6 @@ body::before {
   overflow: hidden;
 }
 
-/* Main content — перекрывает сайдбар */
 .main-content {
   position: absolute;
   top: 0;
@@ -68,7 +67,6 @@ body::before {
   z-index: 2;
 }
 
-/* Когда sidebar скрыт — main-content расширяется на всю ширину */
 .main-content.expanded {
   left: 0;
 }

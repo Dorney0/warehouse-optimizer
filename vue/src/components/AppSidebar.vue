@@ -9,19 +9,19 @@
         </router-link>
       </li>
       <li>
-        <router-link to="/about" class="nav-link">
+        <router-link to="/products" class="nav-link">
           <img :src="homeIcon" class="icon" alt="home" />
           <span>Товары</span>
         </router-link>
       </li>
       <li>
-        <router-link to="/contact" class="nav-link">
+        <router-link to="/orders" class="nav-link">
           <img :src="homeIcon" class="icon" alt="home" />
           <span>Заказы</span>
         </router-link>
       </li>
       <li>
-        <router-link to="/contact" class="nav-link">
+        <router-link to="/movements" class="nav-link">
           <img :src="homeIcon" class="icon" alt="home" />
           <span>Движения товаров</span>
         </router-link>
@@ -35,6 +35,9 @@ import homeIcon from '@/assets/sidebar/homeIcon.svg'
 </script>
 
 <style scoped>
+span {
+  font-family: 'AGP-R', sans-serif;
+}
 .sidebar {
   position: relative;
   width: 200px;
@@ -46,6 +49,7 @@ import homeIcon from '@/assets/sidebar/homeIcon.svg'
 }
 
 .close-btn {
+  color: #333;
   position: absolute;
   top: 25px;
   left: 0.25rem;
@@ -62,12 +66,16 @@ ul {
 }
 
 .nav-link {
+  height: 28px;
   display: flex;
-  align-items: center;
   gap: 0.5rem;
+  align-items:flex-end;
   text-decoration: none;
-  color: black;
   padding: 0.5rem 0;
+}
+
+.nav-link img {
+  align-self: center;
 }
 
 .nav-link:hover {

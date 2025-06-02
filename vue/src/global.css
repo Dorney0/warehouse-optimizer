@@ -1,10 +1,19 @@
 @font-face {
-    font-family: 'Calmius';
-    src: url('@/assets/fonts/Calmius/Calmius-Regular.woff2') format('woff2');
-    font-weight: normal;
-    font-style: normal;
+    font-family: 'AGP-R';
+    src: url('@/assets/fonts/AGaramondPro-Regular.woff2') format('woff');
 }
 
-body {
-    font-family: 'Calmius', sans-serif;
+@font-face {
+    font-family: 'AGP-RSB';
+    src: url('@/assets/fonts/AGaramondPro-Semibold.woff2') format('woff');
 }
+
+span {
+    color: #333;
+    display: inline-block;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
