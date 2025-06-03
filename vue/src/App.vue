@@ -63,7 +63,7 @@ body::before {
   display: flex;
   flex-direction: column;
   transition: left 0.3s ease;
-  background: white;
+  background: #fafafa;
   z-index: 2;
 }
 

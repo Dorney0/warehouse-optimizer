@@ -112,7 +112,6 @@ watch(rows, () => {
 </script>
 
 <template>
-  <div class="table-wrapper">
     <div class="table-container">
       <div class="table">
 
@@ -127,6 +126,7 @@ watch(rows, () => {
               class="data-row"
               v-for="(row, index) in rows"
               :key="index"
+              @click="$emit('row-click', row)"
           >
             <div class="cell" v-for="col in columns" :key="col">
               {{ row[col] }}
@@ -139,20 +139,12 @@ watch(rows, () => {
         <div class="scrollbar-thumb" ref="scrollbarThumb"></div>
       </div>
     </div>
-  </div>
 </template>
 
 <style scoped>
-.table-wrapper {
-  margin: 2rem;
-  border: 1px solid #ccc;
-  border-radius: 12px;
-  background-color: #fff;
-  max-height: 550px;
-  height: 550px;
-  overflow: hidden;
-  padding: 0.4rem;
-  box-sizing: border-box;
+.data-row:hover {
+  background-color: #e0f0ff; /* светло-голубой фон при наведении */
+  cursor: pointer; /* чтобы курсор менялся на указатель */
 }
 
 .table-container {

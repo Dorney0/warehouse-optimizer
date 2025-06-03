@@ -26,6 +26,12 @@
           <span>Движения товаров</span>
         </router-link>
       </li>
+      <li>
+        <router-link to="/movements" class="nav-link">
+          <img :src="homeIcon" class="icon" alt="home" />
+          <span>Снапшоты</span>
+        </router-link>
+      </li>
     </ul>
   </nav>
 </template>
@@ -42,7 +48,7 @@ span {
   position: relative;
   width: 200px;
   height: 100%;
-  background-color: #fafafa;
+  background-color: #f1f1f1;
   box-sizing: border-box;
   border-right: 1px solid #ebebeb;
   padding: 1rem;
