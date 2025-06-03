@@ -91,14 +91,16 @@ def update_entity(db: Session, entity_update: schemas.EntityUpdate):
 
 
 def delete_entity(db: Session, entity_id: int):
-    # Находим сущность
     db_entity = db.query(models.Entity).filter(models.Entity.id == entity_id).first()
-
     if not db_entity:
-        return None  # Если сущность не найдена, возвращаем None
+        return None
+
+    db.query(models.StockMovement).filter(models.StockMovement.entity_id == entity_id).delete(synchronize_session=False)
+
     db.delete(db_entity)
     db.commit()
-    return {"message": "Сущность успешно удалена"}  # Возвращаем сообщение об успешном удалении
+
+    return {"message": "Сущность успешно удалена вместе с движениями склада"}
 
 def delete_stock_movements_by_entity_id(db: Session, entity_id: int):
     # Находим все записи о движении с данным entity_id
