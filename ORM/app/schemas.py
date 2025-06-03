@@ -65,9 +65,18 @@ class StockMovementCreate(StockMovementBase):
     entity_id: int
     related_order_id: Optional[int] = None
 
+class StockMovementUpdate(BaseModel):
+    id: int
+    quantity: Optional[int] = None
+    movement_time: Optional[datetime] = None
+    movement_type: Optional[str] = None
+    entity_id: Optional[int] = None
+    related_order_id: Optional[int] = None
+
 class StockMovement(StockMovementBase):
     id: int
     entity_id: int
+    related_order_id: Optional[int] = None
 
     class Config:
         orm_mode = True

@@ -320,6 +320,20 @@ def create_stock_movement(db: Session, entity_id: int, quantity: int, movement_t
 def get_stock_movements(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.StockMovement).offset(skip).limit(limit).all()
 
+def update_stock_movement(db: Session, movement_update: schemas.StockMovementUpdate):
+    db_movement = db.query(models.StockMovement).filter(models.StockMovement.id == movement_update.id).first()
+    if not db_movement:
+        return None
+
+    for key, value in movement_update.dict(exclude_unset=True).items():
+        if key != "id":
+            setattr(db_movement, key, value)
+
+    db.commit()
+    db.refresh(db_movement)
+    return db_movement
+
+
 def get_stock_at_time(db: Session, entity_id: int, timestamp: datetime):
     movements = db.query(models.StockMovement).filter(
         models.StockMovement.entity_id == entity_id,

@@ -120,12 +120,13 @@ def read_order(order_id: int, db: Session = Depends(get_db)):
 def read_orders(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_orders(db, skip=skip, limit=limit)
 
-@app.put("/orders/", response_model=schemas.Order)
-def update_order(order_update: schemas.OrderUpdate, db: Session = Depends(get_db)):
-    db_order = crud.update_order(db, order_update=order_update)
-    if db_order is None:
-        raise HTTPException(status_code=404, detail="Order not found")
-    return db_order
+@app.put("/stock_movements/", response_model=schemas.StockMovement)
+def update_stock_movement(movement_update: schemas.StockMovementUpdate, db: Session = Depends(get_db)):
+    db_movement = crud.update_stock_movement(db, movement_update=movement_update)
+    if db_movement is None:
+        raise HTTPException(status_code=404, detail="StockMovement not found")
+    return db_movement
+
 
 @app.delete("/orders/{order_id}", response_model=schemas.Order)
 def delete_order(order_id: int, db: Session = Depends(get_db)):
