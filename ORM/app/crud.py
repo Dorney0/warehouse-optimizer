@@ -204,6 +204,17 @@ def delete_stock_movements_by_entity_id(db: Session, entity_id: int):
 
     return stock_movements
 
+def delete_stock_movement(db: Session, movement_id: int):
+    stock_movement = db.query(models.StockMovement).filter(models.StockMovement.id == movement_id).first()
+    if not stock_movement:
+        return None
+
+    db.delete(stock_movement)
+    db.commit()
+    return stock_movement
+
+
+
 def create_order(db: Session, order: schemas.OrderCreate):
     # Создаем новый заказ
     db_order = models.Order(**order.dict())

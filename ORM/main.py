@@ -197,7 +197,16 @@ def get_stock_at_time(timestamp: date, db: Session = Depends(get_db)):
         "stock_movements": stock_movements
     }
 
-@app.delete("/stock-movements/{entity_id}")
+@app.delete("/stock-movements/{movement_id}")
+def delete_stock_movement(movement_id: int, db: Session = Depends(get_db)):
+    deleted_movement = crud.delete_stock_movement(db, movement_id)
+
+    if not deleted_movement:
+        raise HTTPException(status_code=404, detail="Stock movement not found")
+
+    return {"detail": f"Deleted stock movement with ID {movement_id}"}
+
+@app.delete("/stock-movements-cascade/{entity_id}")
 def delete_stock_movements(entity_id: int, db: Session = Depends(get_db)):
     # Вызываем метод для удаления всех записей с данным entity_id
     deleted_movements = crud.delete_stock_movements_by_entity_id(db, entity_id)
