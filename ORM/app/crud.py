@@ -69,128 +69,36 @@ def get_entity_with_children(db: Session, entity_id: int):
 
 def get_entities(db: Session, skip: int = 0, limit: int = 100):
     db_entities = db.query(models.Entity).offset(skip).limit(limit).all()
-    return [schemas.Entity.from_orm(entity) for entity in db_entities]
+    return [schemas.EntityGet.from_orm(entity) for entity in db_entities]
 
 def get_entities_with_children(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Entity).offset(skip).limit(limit).all()
-
 
 def update_entity(db: Session, entity_update: schemas.EntityUpdate):
     db_entity = db.query(models.Entity).filter(models.Entity.id == entity_update.id).first()
     if not db_entity:
         return None
 
-    old_quantity = db_entity.quantity
+    update_data = entity_update.dict(exclude_unset=True)
 
-    # Обновляем остальные поля, кроме id и quantity
-    for key, value in entity_update.dict(exclude_unset=True).items():
-        if key not in ("id", "quantity"):
+    for key, value in update_data.items():
+        if key != "id":
             setattr(db_entity, key, value)
 
-    if 'quantity' in entity_update.dict(exclude_unset=True):
-        incoming_quantity = entity_update.quantity
-
-        if incoming_quantity < 0:
-            raise ValueError("Quantity cannot be negative")
-
-        remaining_difference = incoming_quantity
-
-        # Сначала покрываем дефициты
-        deficiency_records = db.query(models.StockMovement).filter(
-            models.StockMovement.entity_id == db_entity.id,
-            models.StockMovement.movement_type == 'deficiency'
-        ).order_by(models.StockMovement.id.asc()).all()
-
-        for deficiency in deficiency_records:
-            if remaining_difference <= 0:
-                break
-
-            cover_qty = min(deficiency.quantity, remaining_difference)
-            related_order_id = deficiency.related_order_id
-
-            # Добавляем запись, что покрыли дефицит
-            db.add(models.StockMovement(
-                entity_id=db_entity.id,
-                quantity=cover_qty,
-                movement_type='outgoing',
-                related_order_id=related_order_id
-            ))
-
-            remaining_difference -= cover_qty
-
-            if cover_qty == deficiency.quantity:
-                db.delete(deficiency)
-            else:
-                deficiency.quantity -= cover_qty
-
-            db.commit()
-
-            # Проверка, остались ли дефициты по заказу
-            remaining = db.query(models.StockMovement).filter(
-                models.StockMovement.related_order_id == related_order_id,
-                models.StockMovement.movement_type == 'deficiency'
-            ).first()
-
-            if not remaining:
-                order = db.query(models.Order).filter(
-                    models.Order.id == related_order_id
-                ).first()
-                if order:
-                    order.status = "fulfilled"
-                    db.commit()
-
-        # Если остался излишек — это обычный приход
-        if remaining_difference > 0:
-            db.add(models.StockMovement(
-                entity_id=db_entity.id,
-                quantity=remaining_difference,
-                movement_type='incoming',
-                related_order_id=None
-            ))
-            db_entity.quantity += remaining_difference
-            db.commit()
-
-
-        elif quantity_difference < 0:
-            # Расход
-            quantity_out = abs(quantity_difference)
-            db.add(models.StockMovement(
-                entity_id=db_entity.id,
-                quantity=quantity_out,
-                movement_type='outgoing',
-                related_order_id=None
-            ))
-            db.commit()
-
-        # Устанавливаем итоговое количество
-        db_entity.quantity = new_quantity
-
-    # Финальный коммит и возврат
     db.commit()
     db.refresh(db_entity)
-
     return schemas.Entity.from_orm(db_entity)
 
 def delete_entity(db: Session, entity_id: int):
-    # Находим сущность
-    db_entity = db.query(models.Entity).filter(models.Entity.id == entity_id).first()
+    children = db.query(models.Entity).filter(models.Entity.parent_id == entity_id).all()
+    for child in children:
+        delete_entity(db, child.id)
 
-    if not db_entity:
-        return None  # Если сущность не найдена, возвращаем None
+    db.query(models.StockMovement).filter(models.StockMovement.entity_id == entity_id).delete(synchronize_session=False)
+    db.query(models.Entity).filter(models.Entity.id == entity_id).delete(synchronize_session=False)
+    db.commit()
 
-    try:
-        # Удаляем все связанные записи в таблице stock_movements
-        db.query(models.StockMovement).filter(models.StockMovement.entity_id == entity_id).delete()
-
-        # Удаляем саму сущность
-        db.delete(db_entity)
-        db.commit()
-
-    except Exception as e:
-        db.rollback()  # Откатываем транзакцию в случае ошибки
-        return str(e)  # Возвращаем ошибку как строку
-
-    return {"message": "Сущность успешно удалена"}  # Возвращаем сообщение об успешном удалении
+    return True
 
 def delete_stock_movements_by_entity_id(db: Session, entity_id: int):
     # Находим все записи о движении с данным entity_id
@@ -213,8 +121,6 @@ def delete_stock_movement(db: Session, movement_id: int):
     db.commit()
     return stock_movement
 
-
-
 def create_order(db: Session, order: schemas.OrderCreate):
     # Создаем новый заказ
     db_order = models.Order(**order.dict())
@@ -227,17 +133,6 @@ def create_order(db: Session, order: schemas.OrderCreate):
     # Добавляем заказ в базу данных
     db.add(db_order)
     db.commit()
-
-    # Создаем запись в таблице stock_movements
-    #stock_movement = StockMovement(
-    #    entity_id=db_order.entity_id,
-    #    quantity=db_order.total_amount,
-    #    movement_type="outgoing",
-    #    related_order_id=db_order.id,
-    #)
-
-    #db.add(stock_movement)
-    #db.commit()
 
     return db_order
 
@@ -253,47 +148,21 @@ def update_order(db: Session, order_update: schemas.OrderUpdate):
         return None
 
     for key, value in order_update.dict(exclude_unset=True).items():
-        if key != "id":
-            setattr(db_order, key, value)
-
-    db.commit()
-    db.refresh(db_order)
-
-    # После обновления заказа, обновляем связанные записи в stock_movements
-    if 'total_amount' in order_update.dict(exclude_unset=True):
-        old_total_amount = db_order.total_amount
-        new_total_amount = order_update.total_amount
-
-        if old_total_amount != new_total_amount:
-            # Пример изменения связанного количества в stock_movements
-            stock_movements = db.query(models.StockMovement).filter(models.StockMovement.related_order_id == db_order.id).all()
-            for movement in stock_movements:
-                movement.quantity = movement.quantity - (old_total_amount - new_total_amount)
-                db.add(movement)
-            db.commit()
-
-    return schemas.Order.from_orm(db_order)
-
-
-    for key, value in order_update.dict(exclude_unset=True).items():
-        if key != "id":
-            setattr(db_order, key, value)
+        setattr(db_order, key, value)  # обновляем всё, включая id
 
     db.commit()
     db.refresh(db_order)
     return db_order
 
 def delete_order(db: Session, order_id: int):
-    # Находим заказ по ID
     db_order = db.query(models.Order).filter(models.Order.id == order_id).first()
     if not db_order:
         return None
 
-    # Удаляем все связанные записи из таблицы stock_movements
     stock_movements = db.query(models.StockMovement).filter(models.StockMovement.related_order_id == order_id).all()
     for movement in stock_movements:
         db.delete(movement)
-    db.commit()  # Убедитесь, что изменения коммитятся
+    db.commit()
 
     try:
         db.delete(db_order)
@@ -487,8 +356,8 @@ def analyze_deficit_for_orders(db: Session) -> list[Dict]:
 
     return result
 
-
-
+def get_all_entity_stocks(db: Session) -> list[models.EntityStock]:
+    return db.query(models.EntityStock).all()
 
 def get_last_snapshot_date(db: Session):
     return db.query(func.max(EntityStock.date)).scalar()

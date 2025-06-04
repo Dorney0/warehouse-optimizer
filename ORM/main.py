@@ -1,22 +1,16 @@
-from fastapi import FastAPI, Depends, HTTPException, APIRouter
-from typing import List
-from sqlalchemy.orm import Session
-from app.database import SessionLocal
-from app import crud, schemas
-from datetime import datetime
-from app.crud import get_last_snapshot_date
-from app.crud import get_quantity_by_date
-from app.crud import get_entity_with_children
-from app.crud import delete_stock_movements_by_entity_id
-from app.crud import get_leaf_breakdown
-from fastapi import FastAPI, Depends, HTTPException, Query
-from datetime import datetime, time
-from app import models
-from datetime import date
-from app.Services.stock_snapshot import save_today_stock_snapshot
-from apscheduler.schedulers.background import BackgroundScheduler
+from fastapi import FastAPI, Depends, HTTPException, Query, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.routing import APIRoute
+from sqlalchemy.orm import Session
+from typing import List
+from datetime import datetime, date, time
+
+from apscheduler.schedulers.background import BackgroundScheduler
+
+from app import crud, schemas, models
+from app.database import SessionLocal
+from app.Services.stock_snapshot import save_today_stock_snapshot
+
 
 app = FastAPI()
 router = APIRouter()
@@ -53,13 +47,13 @@ def scheduled_snapshot():
 
 @app.on_event("startup")
 def startup_event():
-    scheduler.add_job(scheduled_snapshot, 'cron', hour=4, minute=23, timezone='Europe/Moscow')
+    scheduler.add_job(scheduled_snapshot, 'cron', hour=1, minute=54, timezone='Europe/Moscow')
     scheduler.start()
 
 @app.get("/snapshot/last")
 def check_last_snapshot():
     db = SessionLocal()
-    last = get_last_snapshot_date(db)
+    last = crud.get_last_snapshot_date(db)
     db.close()
     return {"last_snapshot": last.isoformat() if last else "No snapshots yet"}
 
@@ -82,7 +76,7 @@ def get_entity_with_children_route(entity_id: int, db: Session = Depends(get_db)
 def read_entities(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_entities_with_children(db, skip=skip, limit=limit)
 
-@app.get("/entities/", response_model=List[schemas.EntityBase])
+@app.get("/entities/", response_model=List[schemas.EntityGet])
 def read_entities(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_entities(db, skip=skip, limit=limit)
 
@@ -94,20 +88,23 @@ def update_entity(entity_update: schemas.EntityUpdate, db: Session = Depends(get
     return db_entity
 
 @app.delete("/entities/{entity_id}")
-def delete_entity(entity_id: int, db: Session = Depends(get_db)):
-    result = crud.delete_entity(db, entity_id=entity_id)
-
-    if result is None:
+def delete_entity_route(entity_id: int, db: Session = Depends(get_db)):
+    success = crud.delete_entity(db=db, entity_id=entity_id)
+    if not success:
         raise HTTPException(status_code=404, detail="Entity not found")
-    elif isinstance(result, str):  # Если результат - строка ошибки
-        raise HTTPException(status_code=500, detail=f"Error: {result}")
-
-    return result  # Возвращаем сообщение об успешном удалении
+    return {"message": "Entity deleted successfully"}
 
 @app.post("/orders/", response_model=schemas.Order)
 def create_order(order: schemas.OrderCreate, db: Session = Depends(get_db)):
     db_order = crud.create_order(db=db, order=order)
     return db_order
+
+@app.put("/orders/", response_model=schemas.Order)
+def update_order_endpoint(order: schemas.OrderUpdate, db: Session = Depends(get_db)):
+    updated = crud.update_order(db, order)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Order not found")
+    return updated
 
 @app.get("/orders/{order_id}", response_model=schemas.Order)
 def read_order(order_id: int, db: Session = Depends(get_db)):
@@ -119,14 +116,6 @@ def read_order(order_id: int, db: Session = Depends(get_db)):
 @app.get("/orders/", response_model=List[schemas.Order])
 def read_orders(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_orders(db, skip=skip, limit=limit)
-
-@app.put("/stock_movements/", response_model=schemas.StockMovement)
-def update_stock_movement(movement_update: schemas.StockMovementUpdate, db: Session = Depends(get_db)):
-    db_movement = crud.update_stock_movement(db, movement_update=movement_update)
-    if db_movement is None:
-        raise HTTPException(status_code=404, detail="StockMovement not found")
-    return db_movement
-
 
 @app.delete("/orders/{order_id}", response_model=schemas.Order)
 def delete_order(order_id: int, db: Session = Depends(get_db)):
@@ -155,6 +144,13 @@ def create_stock_movement(stock_movement: schemas.StockMovementCreate, db: Sessi
         related_order_id=stock_movement.related_order_id  # Это поле может быть None
     )
     return db_stock_movement
+
+@app.put("/stock_movements/", response_model=schemas.StockMovement)
+def update_stock_movement(movement_update: schemas.StockMovementUpdate, db: Session = Depends(get_db)):
+    db_movement = crud.update_stock_movement(db, movement_update=movement_update)
+    if db_movement is None:
+        raise HTTPException(status_code=404, detail="StockMovement not found")
+    return db_movement
 
 @app.get("/stock_movements/", response_model=List[schemas.StockMovement])
 def read_stock_movements(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
@@ -245,6 +241,10 @@ def read_entity_breakdown(entity_id: int, quantity: int, db: Session = Depends(g
     if not breakdown:
         raise HTTPException(status_code=404, detail="Entity not found or has no children")
     return breakdown
+
+@app.get("/entity-stocks", response_model=List[schemas.EntityStockSchema])
+def read_entity_stocks(db: Session = Depends(get_db)):
+    return crud.get_all_entity_stocks(db)
 
 @app.get("/analyze_deficit")
 def get_deficit_analysis(db: Session = Depends(get_db)):
