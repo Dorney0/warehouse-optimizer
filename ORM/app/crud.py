@@ -89,18 +89,16 @@ def update_entity(db: Session, entity_update: schemas.EntityUpdate):
     db.refresh(db_entity)
     return schemas.Entity.from_orm(db_entity)
 
-
 def delete_entity(db: Session, entity_id: int):
-    db_entity = db.query(models.Entity).filter(models.Entity.id == entity_id).first()
-    if not db_entity:
-        return None
+    children = db.query(models.Entity).filter(models.Entity.parent_id == entity_id).all()
+    for child in children:
+        delete_entity(db, child.id)
 
     db.query(models.StockMovement).filter(models.StockMovement.entity_id == entity_id).delete(synchronize_session=False)
-
-    db.delete(db_entity)
+    db.query(models.Entity).filter(models.Entity.id == entity_id).delete(synchronize_session=False)
     db.commit()
 
-    return {"message": "Сущность успешно удалена вместе с движениями склада"}
+    return True
 
 def delete_stock_movements_by_entity_id(db: Session, entity_id: int):
     # Находим все записи о движении с данным entity_id
@@ -358,8 +356,8 @@ def analyze_deficit_for_orders(db: Session) -> list[Dict]:
 
     return result
 
-
-
+def get_all_entity_stocks(db: Session) -> list[models.EntityStock]:
+    return db.query(models.EntityStock).all()
 
 def get_last_snapshot_date(db: Session):
     return db.query(func.max(EntityStock.date)).scalar()
