@@ -10,26 +10,32 @@
       </li>
       <li>
         <router-link to="/products" class="nav-link">
-          <img :src="homeIcon" class="icon" alt="home" />
+          <img :src="productsIcon" class="icon" alt="products" />
           <span>Товары</span>
         </router-link>
       </li>
       <li>
         <router-link to="/orders" class="nav-link">
-          <img :src="homeIcon" class="icon" alt="home" />
+          <img :src="ordersIcon" class="icon" alt="orders" />
           <span>Заказы</span>
         </router-link>
       </li>
       <li>
         <router-link to="/movements" class="nav-link">
-          <img :src="homeIcon" class="icon" alt="home" />
+          <img :src="movementsIcon" class="icon" alt="movements" />
           <span>Движения товаров</span>
         </router-link>
       </li>
       <li>
-        <router-link to="/movements" class="nav-link">
-          <img :src="homeIcon" class="icon" alt="home" />
+        <router-link to="/snapshot" class="nav-link">
+          <img :src="snapshotsIcon" class="icon" alt="snapshots" />
           <span>Снапшоты</span>
+        </router-link>
+      </li>
+      <li>
+        <router-link to="/deficit" class="nav-link">
+          <img :src="deficitIcon" class="icon" alt="deficit" />
+          <span>Дефицит</span>
         </router-link>
       </li>
     </ul>
@@ -38,6 +44,11 @@
 
 <script setup>
 import homeIcon from '@/assets/sidebar/homeIcon.svg'
+import productsIcon from '@/assets/sidebar/productsIcon.svg'
+import ordersIcon from '@/assets/sidebar/ordersIcon.svg'
+import movementsIcon from '@/assets/sidebar/movementsIcon.svg'
+import snapshotsIcon from '@/assets/sidebar/snapshotsIcon.svg'
+import deficitIcon from '@/assets/sidebar/deficitIcon.svg'
 </script>
 
 <style scoped>
@@ -75,7 +86,7 @@ ul {
   height: 28px;
   display: flex;
   gap: 0.5rem;
-  align-items:flex-end;
+  align-items: flex-end;
   text-decoration: none;
   padding: 0.5rem 0;
 }

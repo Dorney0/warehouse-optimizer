@@ -13,6 +13,8 @@
       <span v-else-if="route.path === '/products'">Товары</span>
       <span v-else-if="route.path === '/orders'">Заказы</span>
       <span v-else-if="route.path === '/movements'">Движения товаров</span>
+      <span v-else-if="route.path === '/snapshot'">Снапшоты</span>
+      <span v-else-if="route.path === '/deficit'">Анализ дефицита</span>
       <span v-else>Warehouse-optimizer</span>
     </h1>
   </header>

@@ -86,7 +86,7 @@ const restoreRelatedOrder = () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100%; /* или фиксированная высота, например 550px */
+  height: 100%;
 }
 
 .create-form {
