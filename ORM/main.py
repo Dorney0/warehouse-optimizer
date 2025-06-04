@@ -53,7 +53,7 @@ def startup_event():
 @app.get("/snapshot/last")
 def check_last_snapshot():
     db = SessionLocal()
-    last = crud.get_last_snapshot_date(db)
+    last = get_last_snapshot_date(db)
     db.close()
     return {"last_snapshot": last.isoformat() if last else "No snapshots yet"}
 
@@ -88,11 +88,15 @@ def update_entity(entity_update: schemas.EntityUpdate, db: Session = Depends(get
     return db_entity
 
 @app.delete("/entities/{entity_id}")
-def delete_entity_route(entity_id: int, db: Session = Depends(get_db)):
-    success = crud.delete_entity(db=db, entity_id=entity_id)
-    if not success:
+def delete_entity(entity_id: int, db: Session = Depends(get_db)):
+    result = crud.delete_entity(db, entity_id=entity_id)
+
+    if result is None:
         raise HTTPException(status_code=404, detail="Entity not found")
-    return {"message": "Entity deleted successfully"}
+    elif isinstance(result, str):  # Если результат - строка ошибки
+        raise HTTPException(status_code=500, detail=f"Error: {result}")
+
+    return result  # Возвращаем сообщение об успешном удалении
 
 @app.post("/orders/", response_model=schemas.Order)
 def create_order(order: schemas.OrderCreate, db: Session = Depends(get_db)):
@@ -101,7 +105,7 @@ def create_order(order: schemas.OrderCreate, db: Session = Depends(get_db)):
 
 @app.put("/orders/", response_model=schemas.Order)
 def update_order_endpoint(order: schemas.OrderUpdate, db: Session = Depends(get_db)):
-    updated = crud.update_order(db, order)
+    updated = update_order(db, order)
     if not updated:
         raise HTTPException(status_code=404, detail="Order not found")
     return updated
@@ -241,10 +245,6 @@ def read_entity_breakdown(entity_id: int, quantity: int, db: Session = Depends(g
     if not breakdown:
         raise HTTPException(status_code=404, detail="Entity not found or has no children")
     return breakdown
-
-@app.get("/entity-stocks", response_model=List[schemas.EntityStockSchema])
-def read_entity_stocks(db: Session = Depends(get_db)):
-    return crud.get_all_entity_stocks(db)
 
 @app.get("/analyze_deficit")
 def get_deficit_analysis(db: Session = Depends(get_db)):

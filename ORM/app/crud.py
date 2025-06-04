@@ -150,47 +150,21 @@ def update_order(db: Session, order_update: schemas.OrderUpdate):
         return None
 
     for key, value in order_update.dict(exclude_unset=True).items():
-        if key != "id":
-            setattr(db_order, key, value)
-
-    db.commit()
-    db.refresh(db_order)
-
-    # После обновления заказа, обновляем связанные записи в stock_movements
-    if 'total_amount' in order_update.dict(exclude_unset=True):
-        old_total_amount = db_order.total_amount
-        new_total_amount = order_update.total_amount
-
-        if old_total_amount != new_total_amount:
-            # Пример изменения связанного количества в stock_movements
-            stock_movements = db.query(models.StockMovement).filter(models.StockMovement.related_order_id == db_order.id).all()
-            for movement in stock_movements:
-                movement.quantity = movement.quantity - (old_total_amount - new_total_amount)
-                db.add(movement)
-            db.commit()
-
-    return schemas.Order.from_orm(db_order)
-
-
-    for key, value in order_update.dict(exclude_unset=True).items():
-        if key != "id":
-            setattr(db_order, key, value)
+        setattr(db_order, key, value)  # обновляем всё, включая id
 
     db.commit()
     db.refresh(db_order)
     return db_order
 
 def delete_order(db: Session, order_id: int):
-    # Находим заказ по ID
     db_order = db.query(models.Order).filter(models.Order.id == order_id).first()
     if not db_order:
         return None
 
-    # Удаляем все связанные записи из таблицы stock_movements
     stock_movements = db.query(models.StockMovement).filter(models.StockMovement.related_order_id == order_id).all()
     for movement in stock_movements:
         db.delete(movement)
-    db.commit()  # Убедитесь, что изменения коммитятся
+    db.commit()
 
     try:
         db.delete(db_order)
