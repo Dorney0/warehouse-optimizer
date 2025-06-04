@@ -105,7 +105,7 @@ def create_order(order: schemas.OrderCreate, db: Session = Depends(get_db)):
 
 @app.put("/orders/", response_model=schemas.Order)
 def update_order_endpoint(order: schemas.OrderUpdate, db: Session = Depends(get_db)):
-    updated = update_order(db, order)
+    updated = crud.update_order(db, order)
     if not updated:
         raise HTTPException(status_code=404, detail="Order not found")
     return updated
